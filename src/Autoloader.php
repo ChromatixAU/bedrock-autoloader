@@ -10,18 +10,19 @@ namespace Roots\Bedrock;
  */
 class Autoloader
 {
-    /** @var static array Blacklisted plugins */
+    /** @var static Array of blacklisted plugins */
     private static $blacklistedPlugins = [
         'wpengine-common/dify-widget.php'
     ];
 
-    /** @var static array Blacklisted plugin folders */
+    /** @var static Array of blacklisted plugin folders */
     private static $blacklistedFolders = [
         'wpe-cache-plugin',
         'wpe-elasticpress-autosuggest-logger',
         'wpe-wp-sign-on-plugin',
         'wpengine-common',
     ];
+
     /** @var static Singleton instance */
     private static $instance;
 
