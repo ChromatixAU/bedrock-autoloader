@@ -10,6 +10,18 @@ namespace Roots\Bedrock;
  */
 class Autoloader
 {
+    /** @var static array Blacklisted plugins */
+    private static $blacklistedPlugins = [
+        'wpengine-common/dify-widget.php'
+    ];
+
+    /** @var static array Blacklisted plugin folders */
+    private static $blacklistedFolders = [
+        'wpe-cache-plugin',
+        'wpe-elasticpress-autosuggest-logger',
+        'wpe-wp-sign-on-plugin',
+        'wpengine-common',
+    ];
     /** @var static Singleton instance */
     private static $instance;
 
@@ -122,11 +134,11 @@ class Autoloader
         $this->autoPlugins = get_plugins($this->relativePath);
         $this->muPlugins   = get_mu_plugins();
         $plugins           = array_diff_key($this->autoPlugins, $this->muPlugins);
-        // Exclude WP Engine plugins.
-        $plugins           = array_filter($plugins, fn($k) => !str_starts_with($k, 'wpe'), ARRAY_FILTER_USE_KEY);
+        // Exclude blacklisted plugins.
+        $filteredPlugins   = array_filter($plugins, fn($k) => !in_array($k, self::$blacklistedPlugins), ARRAY_FILTER_USE_KEY);
         $rebuild           = !isset($this->cache['plugins']);
-        $this->activated   = $rebuild ? $plugins : array_diff_key($plugins, $this->cache['plugins']);
-        $this->cache       = ['plugins' => $plugins, 'count' => $this->countPlugins()];
+        $this->activated   = $rebuild ? $filteredPlugins : array_diff_key($filteredPlugins, $this->cache['plugins']);
+        $this->cache       = ['plugins' => $filteredPlugins, 'count' => $this->countPlugins()];
 
         update_site_option('bedrock_autoloader', $this->cache);
     }
@@ -174,9 +186,10 @@ class Autoloader
             return $this->count;
         }
 
-        // Exclude WP Engine folders.
-        $folders = preg_grep('#mu-plugins\/wpe#', glob(WPMU_PLUGIN_DIR . '/*/', GLOB_ONLYDIR | GLOB_NOSORT), PREG_GREP_INVERT);
-        $count = count($folders);
+        // Exclude blacklisted folders.
+        $folders = glob(WPMU_PLUGIN_DIR . '/*/', GLOB_ONLYDIR | GLOB_NOSORT);
+        $filteredFolders = array_filter($folders, fn($k) => !in_array(basename($k), self::$blacklistedFolders));
+        $count = count($filteredFolders);
 
         if (!isset($this->cache['count']) || $count !== $this->cache['count']) {
             $this->count = $count;
