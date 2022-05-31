@@ -1,5 +1,5 @@
 {
-  "name": "roots/bedrock-autoloader",
+  "name": "chromatix/bedrock-autoloader",
   "license": "MIT",
   "description": "An autoloader that enables standard plugins to be required just like must-use plugins",
   "authors": [
