@@ -122,6 +122,8 @@ class Autoloader
         $this->autoPlugins = get_plugins($this->relativePath);
         $this->muPlugins   = get_mu_plugins();
         $plugins           = array_diff_key($this->autoPlugins, $this->muPlugins);
+        // Exclude WP Engine plugins.
+        $plugins           = array_filter($plugins, fn($k) => !str_starts_with($k, 'wpe'), ARRAY_FILTER_USE_KEY);
         $rebuild           = !isset($this->cache['plugins']);
         $this->activated   = $rebuild ? $plugins : array_diff_key($plugins, $this->cache['plugins']);
         $this->cache       = ['plugins' => $plugins, 'count' => $this->countPlugins()];
@@ -172,7 +174,9 @@ class Autoloader
             return $this->count;
         }
 
-        $count = count(glob(WPMU_PLUGIN_DIR . '/*/', GLOB_ONLYDIR | GLOB_NOSORT));
+        // Exclude WP Engine folders.
+        $folders = preg_grep('#mu-plugins\/wpe#', glob(WPMU_PLUGIN_DIR . '/*/', GLOB_ONLYDIR | GLOB_NOSORT), PREG_GREP_INVERT);
+        $count = count($folders);
 
         if (!isset($this->cache['count']) || $count !== $this->cache['count']) {
             $this->count = $count;
